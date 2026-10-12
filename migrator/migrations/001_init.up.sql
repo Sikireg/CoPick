@@ -1,7 +1,6 @@
 CREATE TABLE content_types (
     type_id integer primary key generated always as identity,
-    type_code varchar(16) not null unique,
-    display_name varchar(32) not null
+    content_name varchar(16) not null unique
 );
 
 CREATE TABLE profiles (
