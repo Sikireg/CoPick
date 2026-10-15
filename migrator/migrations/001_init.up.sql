@@ -6,7 +6,8 @@ CREATE TABLE content_types (
 CREATE TABLE profiles (
     profile_id integer primary key generated always as identity,
     nickname varchar(32) not null unique,
-    created_at timestamp default now()
+    password_hash varchar(255),
+    created_at timestamptz default now()
 );
 
 CREATE TABLE groups (
@@ -14,14 +15,14 @@ CREATE TABLE groups (
     name varchar(64) not null,
     invite_code varchar(16) unique,
     age_restriction smallint check (age_restriction between 0 and 21),
-    created_at timestamp default now()
+    created_at timestamptz default now()
 );
 
 CREATE TABLE group_members (
     group_id integer references groups(group_id) on delete cascade,
     profile_id integer references profiles(profile_id) on delete cascade,
     role varchar(16) not null default 'member',
-    joined_at timestamp default now(),
+    joined_at timestamptz default now(),
     primary key (group_id, profile_id)
 );
 
@@ -33,20 +34,18 @@ CREATE TABLE genres (
 );
 
 CREATE TABLE profile_preferences (
-    preference_id integer primary key generated always as identity,
     profile_id integer references profiles(profile_id) on delete cascade,
     genre_id integer references genres(genre_id) on delete cascade,
-    weight smallint not null check (weight between 0 and 10),
-    updated_at timestamp default now(),
-    unique (profile_id, genre_id)
+    weight numeric(3,2) not null check (weight between -1 and 1),
+    updated_at timestamptz default now(),
+    primary key (profile_id, genre_id)
 );
 
-CREATE TABLE group_vibes (
-    group_id integer references groups(group_id) on delete cascade,
-    genre_id integer references genres(genre_id) on delete cascade,
-    total_weight integer not null,
-    avg_weight numeric(4,2) not null,
-    min_weight smallint not null,
-    updated_at timestamp default now(),
-    primary key (group_id, genre_id)
+CREATE TABLE preference_history (
+    history_id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+    profile_id integer NOT NULL,
+    genre_id integer NOT NULL, 
+    old_weight numeric(3,2) check (old_weight between -1 and 1), 
+    new_weight numeric(3,2) check (new_weight between -1 and 1),
+    changed_at timestamptz DEFAULT NOW()
 );
