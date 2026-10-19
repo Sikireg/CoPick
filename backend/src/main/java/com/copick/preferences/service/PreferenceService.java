@@ -1,60 +1,67 @@
 package com.copick.preferences.service;
 
+import com.copick.preferences.dto.PreferenceUpdateDto;
+import com.copick.preferences.entity.Genre;
 import com.copick.preferences.entity.PreferenceHistory;
 import com.copick.preferences.entity.ProfilePreference;
+import com.copick.preferences.entity.ProfilePreferenceId;
+import com.copick.preferences.exception.InvalidWeightException;
+import com.copick.preferences.repository.GenreRepository;
 import com.copick.preferences.repository.PreferenceHistoryRepository;
 import com.copick.preferences.repository.ProfilePreferenceRepository;
-import lombok.Data;
+import com.copick.profiles.entity.Profile;
+import com.copick.profiles.repository.ProfileRepository;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PreferenceService {
 
+    private static final BigDecimal WEIGHT_MIN = BigDecimal.ONE.negate(); // -1
+    private static final BigDecimal WEIGHT_MAX = BigDecimal.ONE; //  1
+
     private final ProfilePreferenceRepository preferenceRepository;
     private final PreferenceHistoryRepository historyRepository;
-
-    @Data
-    public static class PreferenceUpdateDto {
-        private Integer genreId;
-        private BigDecimal weight;
-    }
+    private final ProfileRepository profileRepository;
+    private final GenreRepository genreRepository;
 
     @Transactional
     public void updatePreferences(Integer profileId, List<PreferenceUpdateDto> updates) {
         for (PreferenceUpdateDto dto : updates) {
-            // Находим существующее предпочтение или создаем новое
-            ProfilePreference pref = preferenceRepository
-                    .findByProfileIdAndGenreId(profileId, dto.getGenreId())
-                    .orElseGet(() -> {
-                        ProfilePreference newPref = new ProfilePreference();
-                        newPref.setProfileId(profileId);
-                        newPref.setGenreId(dto.getGenreId());
-                        return newPref;
-                    });
+            validateWeight(dto.getWeight());
+        }
 
-            // Сохраняем старое значение для истории
+        Profile profileRef = profileRepository.getReferenceById(profileId);
+
+        for (PreferenceUpdateDto dto : updates) {
+            ProfilePreferenceId id = new ProfilePreferenceId(profileId, dto.getGenreId());
+
+            ProfilePreference pref = preferenceRepository
+                .findById(id)
+                .orElseGet(() -> {
+                    ProfilePreference newPref = new ProfilePreference();
+                    newPref.setProfile(profileRef);
+                    newPref.setGenre(genreRepository.getReferenceById(dto.getGenreId()));
+                    return newPref;
+                });
+
             BigDecimal oldWeight = pref.getWeight();
 
-            // Обновляем предпочтение
             pref.setWeight(dto.getWeight());
             preferenceRepository.save(pref);
 
-            // Записываем в историю изменений
             PreferenceHistory history = new PreferenceHistory();
-            history.setProfileId(profileId);
-            history.setGenreId(dto.getGenreId());
+            history.setProfile(pref.getProfile());
+            history.setGenre(pref.getGenre());
             history.setOldWeight(oldWeight);
             history.setNewWeight(dto.getWeight());
-            history.setChangedAt(OffsetDateTime.now());
             historyRepository.save(history);
 
             log.info("Обновлено предпочтение: profile={}, genre={}, old={}, new={}",
@@ -62,10 +69,80 @@ public class PreferenceService {
         }
     }
 
-    /**
-     * Получает все предпочтения пользователя
-     */
+    /** Получает все предпочтения пользователя */
+    @Transactional(readOnly = true)
     public List<ProfilePreference> getPreferences(Integer profileId) {
         return preferenceRepository.findByProfileId(profileId);
+    }
+
+    /** Сбрасывает конкретное предпочтение пользователя. */
+    @Transactional
+    public void resetPreference(Integer profileId, Integer genreId) {
+        ProfilePreferenceId id = new ProfilePreferenceId(profileId, genreId);
+
+        Optional<ProfilePreference> existing = preferenceRepository.findById(id);
+        if (existing.isEmpty()) {
+            return;
+        }
+
+        ProfilePreference pref = existing.get();
+        BigDecimal oldWeight = pref.getWeight();
+
+        PreferenceHistory history = new PreferenceHistory();
+        history.setProfile(pref.getProfile());
+        history.setGenre(pref.getGenre());
+        history.setOldWeight(oldWeight);
+        history.setNewWeight(null);
+        historyRepository.save(history);
+
+        preferenceRepository.delete(pref);
+
+        log.info("Сброшено предпочтение: profile={}, genre={}, old={}", profileId, genreId, oldWeight);
+    }
+
+    /**
+    * Сбрасывает все предпочтения пользователя.
+    *
+    * @return количество удалённых предпочтений
+    */
+    @Transactional
+    public int resetAllPreferences(Integer profileId) {
+        List<ProfilePreference> prefs = preferenceRepository.findByProfileId(profileId);
+
+        if (prefs.isEmpty()) {
+            return 0;
+        }
+
+        for (ProfilePreference pref : prefs) {
+            BigDecimal oldWeight = pref.getWeight();
+
+            PreferenceHistory history = new PreferenceHistory();
+            history.setProfile(pref.getProfile());
+            history.setGenre(pref.getGenre());
+            history.setOldWeight(oldWeight);
+            history.setNewWeight(null);
+            historyRepository.save(history);
+
+            preferenceRepository.delete(pref);
+        }
+
+        log.info("Сброшены все предпочтения профиля {}: {} шт.", profileId, prefs.size());
+
+        return prefs.size();
+    }
+
+    /** Возвращает историю изменений предпочтений пользователя, отсортированную от новых к старым. */
+    @Transactional(readOnly = true)
+    public List<PreferenceHistory> getPreferenceHistory(Integer profileId) {
+        return historyRepository.findByProfileIdOrderByChangedAtDesc(profileId);
+    }
+
+    private void validateWeight(BigDecimal weight) {
+        if (weight == null) {
+            throw new InvalidWeightException();
+        }
+        if (weight.compareTo(WEIGHT_MIN) < 0 || weight.compareTo(WEIGHT_MAX) > 0) {
+            throw new InvalidWeightException(weight);
+        }
     }
 }
