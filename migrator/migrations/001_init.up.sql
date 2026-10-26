@@ -43,9 +43,36 @@ CREATE TABLE profile_preferences (
 
 CREATE TABLE preference_history (
     history_id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
-    profile_id integer NOT NULL,
-    genre_id integer NOT NULL, 
+    profile_id integer NOT NULL references profiles(profile_id) on delete cascade,
+    genre_id integer NOT NULL references genres(genre_id) on delete cascade,
     old_weight numeric(3,2) check (old_weight between -1 and 1), 
     new_weight numeric(3,2) check (new_weight between -1 and 1),
     changed_at timestamptz DEFAULT NOW()
+);
+
+CREATE TABLE saved_movies (
+    saved_id integer primary key generated always as identity,
+    group_id integer references groups(group_id) on delete cascade,
+    external_id varchar(64) not null,
+    content_type varchar(16) not null,
+
+    title varchar(255) not null,
+    original_title varchar(255),
+    poster_url varchar(512),
+    backdrop_url varchar(512),
+    rating numeric(3, 1),
+    release_year integer,
+    overview text,
+
+    added_by integer references profiles(profile_id) on delete set null,
+    added_at timestamptz default now(),
+    notes text,
+
+    unique (group_id, external_id, content_type)
+);
+
+CREATE TABLE saved_movie_genres (
+    saved_id integer references saved_movies(saved_id) on delete cascade,
+    genre_id integer references genres(genre_id) on delete cascade,
+    primary key (saved_id, genre_id)
 );

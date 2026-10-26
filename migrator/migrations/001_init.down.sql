@@ -5,3 +5,5 @@ DROP TABLE IF EXISTS genres;
 DROP TABLE IF EXISTS profiles;
 DROP TABLE IF EXISTS content_types;
 DROP TABLE IF EXISTS preference_history;
+DROP TABLE IF EXISTS saved_movie_genres;
+DROP TABLE IF EXISTS saved_movies;
