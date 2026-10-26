@@ -75,62 +75,6 @@ public class PreferenceService {
         return preferenceRepository.findByProfileId(profileId);
     }
 
-    /** Сбрасывает конкретное предпочтение пользователя. */
-    @Transactional
-    public void resetPreference(Integer profileId, Integer genreId) {
-        ProfilePreferenceId id = new ProfilePreferenceId(profileId, genreId);
-
-        Optional<ProfilePreference> existing = preferenceRepository.findById(id);
-        if (existing.isEmpty()) {
-            return;
-        }
-
-        ProfilePreference pref = existing.get();
-        BigDecimal oldWeight = pref.getWeight();
-
-        PreferenceHistory history = new PreferenceHistory();
-        history.setProfile(pref.getProfile());
-        history.setGenre(pref.getGenre());
-        history.setOldWeight(oldWeight);
-        history.setNewWeight(null);
-        historyRepository.save(history);
-
-        preferenceRepository.delete(pref);
-
-        log.info("Сброшено предпочтение: profile={}, genre={}, old={}", profileId, genreId, oldWeight);
-    }
-
-    /**
-    * Сбрасывает все предпочтения пользователя.
-    *
-    * @return количество удалённых предпочтений
-    */
-    @Transactional
-    public int resetAllPreferences(Integer profileId) {
-        List<ProfilePreference> prefs = preferenceRepository.findByProfileId(profileId);
-
-        if (prefs.isEmpty()) {
-            return 0;
-        }
-
-        for (ProfilePreference pref : prefs) {
-            BigDecimal oldWeight = pref.getWeight();
-
-            PreferenceHistory history = new PreferenceHistory();
-            history.setProfile(pref.getProfile());
-            history.setGenre(pref.getGenre());
-            history.setOldWeight(oldWeight);
-            history.setNewWeight(null);
-            historyRepository.save(history);
-
-            preferenceRepository.delete(pref);
-        }
-
-        log.info("Сброшены все предпочтения профиля {}: {} шт.", profileId, prefs.size());
-
-        return prefs.size();
-    }
-
     /** Возвращает историю изменений предпочтений пользователя, отсортированную от новых к старым. */
     @Transactional(readOnly = true)
     public List<PreferenceHistory> getPreferenceHistory(Integer profileId) {

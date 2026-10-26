@@ -178,4 +178,12 @@ public class ProfileService {
                 "Пароль не может быть длиннее " + PASSWORD_MAX_LENGTH + " символов (ограничение BCrypt)");
         }
     }
+
+    @Transactional
+    public void deleteProfile(Integer profileId) {
+        Profile profile = getProfile(profileId);
+
+        profileRepository.delete(profile);
+        log.info("Профиль удалён: profileId={}, nickname={}", profileId, profile.getNickname());
+    }
 }
