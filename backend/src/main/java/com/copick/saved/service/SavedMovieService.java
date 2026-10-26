@@ -30,11 +30,10 @@ public class SavedMovieService {
     private final SavedMovieRepository savedMovieRepository;
     private final GroupRepository groupRepository;
     private final ProfileRepository profileRepository;
-    private final GenreRepository genreRepository; // Добавили для проверки жанров
+    private final GenreRepository genreRepository;
 
     /**
      * DTO для запроса на добавление фильма в сохранённые.
-     * genres заменен на genreIds, так как мы используем реляционную таблицу.
      */
     @Data
     public static class SaveMovieRequest {
@@ -46,7 +45,7 @@ public class SavedMovieService {
         private String backdropUrl;
         private Double rating;
         private Integer releaseYear;
-        private List<Integer> genreIds; // <-- ИЗМЕНЕНО: теперь это ID жанров
+        private List<String> genres;
         private String overview;
         private String notes;
     }
@@ -91,27 +90,28 @@ public class SavedMovieService {
         savedMovie.setNotes(request.getNotes());
         savedMovie.setAddedAt(OffsetDateTime.now());
 
-        // 4. МАППИНГ ЖАНРОВ: преобразуем List<Integer> в List<SavedMovieGenre>
-        if (request.getGenreIds() != null) {
-            // Убираем дубликаты ID на всякий случай
-            List<Integer> uniqueGenreIds = request.getGenreIds().stream().distinct().toList();
+        // 4. МАППИНГ ЖАНРОВ: преобразуем List<String> (названия) в List<SavedMovieGenre>
+        if (request.getGenres() != null) {
+            // Убираем возможные дубликаты названий
+            List<String> uniqueGenreNames = request.getGenres().stream().distinct().toList();
 
-            for (Integer genreId : uniqueGenreIds) {
-                // Проверяем, что жанр реально существует в БД
-                Genre genre = genreRepository.findById(genreId)
-                        .orElseThrow(() -> new IllegalArgumentException("Жанр с ID " + genreId + " не найден в справочнике"));
+            for (String genreName : uniqueGenreNames) {
+                // Ищем жанр в БД по названию
+                Genre genre = genreRepository.findByGenreName(genreName)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Жанр '" + genreName + "' не найден в справочнике genres. " +
+                                        "Возможно, нужно добавить его через миграцию."));
 
                 SavedMovieGenre savedMovieGenre = new SavedMovieGenre();
                 savedMovieGenre.setGenre(genre);
 
-                // Добавляем в коллекцию фильма.
-                // Благодаря CascadeType.ALL Hibernate сам проставит savedId после сохранения родителя.
+                // Добавляем в коллекцию. Благодаря CascadeType.ALL Hibernate сам проставит savedId
                 savedMovie.getGenres().add(savedMovieGenre);
             }
         }
 
         SavedMovie result = savedMovieRepository.save(savedMovie);
-        log.info("Контент '{}' (ID: {}) с описанием и {} жанрами добавлен в сохранённые группы {}",
+        log.info("Контент '{}' (ID: {}) с {} жанрами добавлен в сохранённые группы {}",
                 request.getTitle(), result.getSavedId(), result.getGenres().size(), groupId);
 
         return result;
@@ -125,7 +125,6 @@ public class SavedMovieService {
         if (!groupRepository.existsById(groupId)) {
             throw new GroupNotFoundException(groupId);
         }
-        // Убедись, что в репозитории метод называется именно так
         return savedMovieRepository.findByGroupIdWithGenres(groupId);
     }
 

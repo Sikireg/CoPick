@@ -15,7 +15,6 @@ public interface SavedMovieRepository extends JpaRepository<SavedMovie, Integer>
 
     /**
      * Возвращает все сохранённые фильмы группы ВМЕСТЕ с их жанрами и автором.
-     * LEFT JOIN FETCH предотвращает проблему N+1 запросов при загрузке жанров.
      */
     @EntityGraph(attributePaths = "addedBy")
     @Query("SELECT DISTINCT sm FROM SavedMovie sm " +
