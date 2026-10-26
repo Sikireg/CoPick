@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PreferenceUpdateDto {
     private Integer genreId;
-    private BigDecimal weight;
+    private Double weight;
 }

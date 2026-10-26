@@ -2,7 +2,6 @@ package com.copick.preferences.entity;
 
 import com.copick.profiles.entity.Profile;
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,10 +30,10 @@ public class PreferenceHistory {
     private Genre genre;
 
     @Column(name = "old_weight", precision = 3, scale = 2)
-    private BigDecimal oldWeight;
+    private Double oldWeight;
 
     @Column(name = "new_weight", precision = 3, scale = 2)
-    private BigDecimal newWeight;
+    private Double newWeight;
 
     @CreationTimestamp
     @Column(name = "changed_at", updatable = false)

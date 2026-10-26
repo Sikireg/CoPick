@@ -11,7 +11,6 @@ import com.copick.preferences.repository.PreferenceHistoryRepository;
 import com.copick.preferences.repository.ProfilePreferenceRepository;
 import com.copick.profiles.entity.Profile;
 import com.copick.profiles.repository.ProfileRepository;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PreferenceService {
 
-    private static final BigDecimal WEIGHT_MIN = BigDecimal.ONE.negate(); // -1
-    private static final BigDecimal WEIGHT_MAX = BigDecimal.ONE; //  1
+    private static final Double WEIGHT_MIN = -1.0;
+    private static final Double WEIGHT_MAX = 1.0;
 
     private final ProfilePreferenceRepository preferenceRepository;
     private final PreferenceHistoryRepository historyRepository;
@@ -52,7 +51,7 @@ public class PreferenceService {
                     return newPref;
                 });
 
-            BigDecimal oldWeight = pref.getWeight();
+            Double oldWeight = pref.getWeight();
 
             pref.setWeight(dto.getWeight());
             preferenceRepository.save(pref);
@@ -81,7 +80,7 @@ public class PreferenceService {
         return historyRepository.findByProfileIdOrderByChangedAtDesc(profileId);
     }
 
-    private void validateWeight(BigDecimal weight) {
+    private void validateWeight(Double weight) {
         if (weight == null) {
             throw new InvalidWeightException();
         }
