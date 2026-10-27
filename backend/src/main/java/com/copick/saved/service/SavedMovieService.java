@@ -90,7 +90,6 @@ public class SavedMovieService {
         savedMovie.setNotes(request.getNotes());
         savedMovie.setAddedAt(OffsetDateTime.now());
 
-        // 4. МАППИНГ ЖАНРОВ: преобразуем List<String> (названия) в List<SavedMovieGenre>
         if (request.getGenres() != null) {
             // Убираем возможные дубликаты названий
             List<String> uniqueGenreNames = request.getGenres().stream().distinct().toList();
