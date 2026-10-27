@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -45,7 +44,7 @@ public class SavedMovie {
     private String backdropUrl;
 
     @Column(name = "rating", precision = 3, scale = 1)
-    private BigDecimal rating;
+    private Double rating;
 
     @Column(name = "release_year")
     private Integer releaseYear;

@@ -82,7 +82,7 @@ public class SavedMovieService {
         savedMovie.setBackdropUrl(request.getBackdropUrl());
 
         if (request.getRating() != null) {
-            savedMovie.setRating(java.math.BigDecimal.valueOf(request.getRating()));
+            savedMovie.setRating(request.getRating());
         }
 
         savedMovie.setReleaseYear(request.getReleaseYear());
