@@ -13,8 +13,6 @@
 | Костюков Михаил | 5130904/40105 | вайб гай |
 | Шапков Гордей | 5130904/40105 | клевый пацанчик |
 
-Репозиторий: [ссылка]
-
 ---
 
 ## 1. Определение проблемы
@@ -70,13 +68,13 @@
 
 ### 3.2. C4. Диаграмма контекста (уровень 1)
 
-![C4 Context](docs/c4-context.png)
+<img width="850" height="1760" alt="context_copick(last)_" src="https://github.com/user-attachments/assets/1fa205f7-32bc-41f8-aec7-61c1c4626c12" />
 
 Пользователь работает с CoPick через браузер. Единственная внешняя система — TMDB API, источник метаданных о фильмах (названия, постеры, рейтинги, описания, жанры).
 
 ### 3.3. C4. Диаграмма контейнеров (уровень 2)
 
-![C4 Containers](docs/c4-containers.png)
+<img width="2280" height="2286" alt="Containers_copick(last)" src="https://github.com/user-attachments/assets/68e016c9-59e9-4cd1-9470-0ab2f11c06b2" />
 
 | Контейнер | Технологии | Ответственность |
 |-----------|-----------|-----------------|
@@ -112,11 +110,9 @@
 | GET | `/groups/{groupId}/saved` | Доска группы | член группы | 200, список | 250 мс |
 | POST | `/groups/{groupId}/saved` | Добавить фильм на доску | член группы | 201, `SavedMovieResponseDto` | 300 мс (с обращением к коннектору до 800 мс) |
 | DELETE | `/groups/{groupId}/saved/{savedId}` | Убрать фильм с доски | член группы | 204 | 150 мс |
-| GET | `/groups/{id}/recommendations` | Расчёт подборки. Параметры: `genreIds` (жанры «на сегодня»), `profileIds` (кто смотрит; по умолчанию вся группа), `limit` (по умолчанию 10) | член группы [проверить] | 200, список `ScoredMovie` (`movieId`, `finalScore`, `genreIds`, `qualityScore`) | [уточнить: 800 мс] |
-| GET | `/groups/{id}/recommendations/stats` | Статистика группы: число участников, топ жанров (средний и минимальный вес), запрещённые жанры | член группы [проверить] | 200, `GroupStatsResponse` | 300 мс |
-| GET | `/groups/{id}/recommendations/last` | Последний сохранённый снимок рекомендаций с постерами, рейтингами и жанрами | член группы [проверить] | 200, список `SnapshotMovieResponse` | 200 мс |
-
-> Поиск фильмов через коннектор в присланных контроллерах не встречался: если он есть, добавьте его в таблицу. Проверку членства в группе для рекомендаций тоже стоит сверить с кодом сервиса.
+| GET | `/groups/{id}/recommendations` | Расчёт подборки. Параметры: `genreIds` (жанры «на сегодня»), `profileIds` (кто смотрит; по умолчанию вся группа), `limit` (по умолчанию 10) | член группы | 200, список `ScoredMovie` (`movieId`, `finalScore`, `genreIds`, `qualityScore`) | 800 мс |
+| GET | `/groups/{id}/recommendations/stats` | Статистика группы: число участников, топ жанров (средний и минимальный вес), запрещённые жанры | член группы | 200, `GroupStatsResponse` | 300 мс |
+| GET | `/groups/{id}/recommendations/last` | Последний сохранённый снимок рекомендаций с постерами, рейтингами и жанрами | член группы | 200, список `SnapshotMovieResponse` | 200 мс |
 
 **Пример: добавление фильма на доску**
 
@@ -203,8 +199,6 @@ mmr = μ · score_norm − (1 − μ) · max(Jaccard(жанры фильма, ж
 | κ | смягчённый вес для вето-жанра из контекста | [значение] |
 | μ | баланс релевантности и разнообразия в MMR | [значение] |
 | M | размер пула для MMR | [значение] |
-
-**Снимок.** Результат расчёта сохраняется в `recommendation_snapshots` / `snapshot_movies` (по одному снимку на группу). `GET /recommendations/last` отдаёт последний снимок с полными данными фильмов без повторного расчёта. [Проверьте: снимок обновляется при каждом вызове `GET /recommendations`.]
 
 **Сложность.** Расчёт идёт за `O(|кандидаты| · n · g)` (n участников, g жанров фильма), MMR добавляет `O(M²)`. При n ≤ 10 и сотнях кандидатов это единицы миллисекунд, поэтому узким местом остаётся не алгоритм, а получение кандидатов у коннектора.
 
@@ -363,15 +357,16 @@ flowchart LR
 | Connector | Go 1.26.0 |
 | База данных | PostgreSQL, миграции `golang-migrate` |
 
-Структура репозитория ИСПРАВИТЬ:
+Структура репозитория:
 
 ```
 /backend      # Spring Boot (пакеты auth, profiles, groups, preferences, saved, recommendations)
-/frontend     # React SPA
+/web     # React SPA
 /connector    # Go-сервис для TMDB
-/migrations   # SQL-миграции
-/docs         # диаграммы
-docker-compose.yml
+/migrator   # SQL-миграции
+/monitoring         #АААААА???
+/test        #FFFFFFF
+docker-compose.ayml
 ```
 
 Ключевые решения:
@@ -452,9 +447,11 @@ cp .env.example .env     # TMDB_API_KEY, JWT_SECRET, параметры БД
 docker compose up --build
 ```
 
-После запуска: НАДО ПОЧИСТИТЬ +графану
-- Frontend: http://localhost:[порт]
-- Backend API: http://localhost:[порт]/api/v1
-- Connector: http://localhost:[порт]
+После запуска:
 
-Сервисы в `docker-compose.yml`: `postgres`, `migrate` (golang-migrate), `backend`, `connector`, `frontend`.
+Frontend: http://localhost:4200
+Backend API: http://localhost:8080/api/v1
+Grafana: http://localhost:3000
+
+Сервисы в `docker-compose.yml`: `postgres`, `postgres_migrate`, `connector`, `backend`, `web`, `prometheus`, `alertmanager`, `grafana`.
+
