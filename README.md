@@ -449,9 +449,9 @@ docker compose up --build
 
 После запуска:
 
-Frontend: http://localhost:4200
-Backend API: http://localhost:8080/api/v1
-Grafana: http://localhost:3000
+Frontend: http://localhost:4200.
+Backend API: http://localhost:8080/api/v1.
+Grafana: http://localhost:3000.
 
 Сервисы в `docker-compose.yml`: `postgres`, `postgres_migrate`, `connector`, `backend`, `web`, `prometheus`, `alertmanager`, `grafana`.
 
