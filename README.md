@@ -443,7 +443,7 @@ docker-compose --profile integration_tests run --rm integration_tests
 ```bash
 git clone [ссылка]
 cd copick
-cp .env.example .env     # TMDB_API_KEY, JWT_SECRET, параметры БД
+cp .env.example .env     # TMDB_API_KEY, JWT_SECRET, JWT_DURATION, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 docker compose up --build
 ```
 
