@@ -108,7 +108,7 @@
 | POST | `/groups/{id}/regenerate-invite` | Новый код приглашения | owner | 200, `{inviteCode}` | 150 мс |
 | POST | `/groups/{id}/leave` | Покинуть группу | член группы | 204 | 150 мс |
 | GET | `/groups/{groupId}/saved` | Доска группы | член группы | 200, список | 250 мс |
-| POST | `/groups/{groupId}/saved` | Добавить фильм на доску | член группы | 201, `SavedMovieResponseDto` | 300 мс (с обращением к коннектору до 800 мс) |
+| POST | `/groups/{groupId}/saved` | Добавить фильм на доску | член группы | 201, `SavedMovieResponseDto` | 300 мс |
 | DELETE | `/groups/{groupId}/saved/{savedId}` | Убрать фильм с доски | член группы | 204 | 150 мс |
 | GET | `/groups/{id}/recommendations` | Расчёт подборки. Параметры: `genreIds` (жанры «на сегодня»), `profileIds` (кто смотрит; по умолчанию вся группа), `limit` (по умолчанию 10) | член группы | 200, список `ScoredMovie` (`movieId`, `finalScore`, `genreIds`, `qualityScore`) |  800 мс |
 | GET | `/groups/{id}/recommendations/stats` | Статистика группы: число участников, топ жанров (средний и минимальный вес), запрещённые жанры | член группы | 200, `GroupStatsResponse` | 300 мс |
