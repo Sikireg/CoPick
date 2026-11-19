@@ -68,7 +68,7 @@
 
 ### 3.2. C4. Диаграмма контекста (уровень 1)
 
-<img width="283" alt="context_copick(last)_" src="https://github.com/user-attachments/assets/1fa205f7-32bc-41f8-aec7-61c1c4626c12" />
+<img width="350" alt="context_copick(last)_" src="https://github.com/user-attachments/assets/1fa205f7-32bc-41f8-aec7-61c1c4626c12" />
 
 Пользователь работает с CoPick через браузер. Единственная внешняя система — TMDB API, источник метаданных о фильмах (названия, постеры, рейтинги, описания, жанры).
 
