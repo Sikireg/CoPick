@@ -89,30 +89,30 @@
 
 Базовый префикс: `/api/v1`. Все эндпоинты, кроме `/auth/register` и `/auth/login`, требуют `Authorization: Bearer <JWT>`. Идентификатор текущего профиля берётся из токена.
 
-| Метод | Путь | Описание | Права | Ответ | Целевое p95 |
-|-------|------|----------|-------|-------|-------------|
-| POST | `/auth/register` | Регистрация (`nickname`, `password`) | все | 201, `{token, profile}` | 300 мс |
-| POST | `/auth/login` | Вход | все | 200, `{token, profile}` | 300 мс |
-| PATCH | `/auth/me` | Смена никнейма и/или пароля (`nickname`, `oldPassword`, `newPassword`) | владелец профиля | 200, `ProfileDto` | 300 мс |
-| GET | `/genres` | Справочник жанров | авторизованный | 200, список | 50 мс |
-| GET | `/profiles/me/preferences` | Мои оценки жанров | авторизованный | 200, список | 100 мс |
-| PUT | `/profiles/me/preferences` | Задать оценки жанров списком (вес от -1.0 до 1.0) | авторизованный | 200, список | 200 мс |
-| DELETE | `/profiles/me/preferences/{genreId}` | Удалить одну оценку | авторизованный | 204 | 100 мс |
-| DELETE | `/profiles/me/preferences` | Удалить все оценки | авторизованный | 204 | 100 мс |
-| GET | `/groups` | Мои группы (роль, число участников) | авторизованный | 200, список | 150 мс |
-| POST | `/groups` | Создать группу (`name`, `ageRestriction`) | авторизованный | 200, `GroupDetailsDto` | 200 мс |
-| POST | `/groups/join` | Вступить по коду (`inviteCode`) | авторизованный | 200, `GroupDetailsDto` | 200 мс |
-| GET | `/groups/{id}` | Детали группы и участники | член группы | 200, `GroupDetailsDto` | 150 мс |
-| DELETE | `/groups/{id}` | Удалить группу | owner | 204 | 200 мс |
-| DELETE | `/groups/{id}/members/{memberProfileId}` | Исключить участника | owner | 204 | 150 мс |
-| POST | `/groups/{id}/regenerate-invite` | Новый код приглашения | owner | 200, `{inviteCode}` | 150 мс |
-| POST | `/groups/{id}/leave` | Покинуть группу | член группы | 204 | 150 мс |
-| GET | `/groups/{groupId}/saved` | Доска группы | член группы | 200, список | 250 мс |
-| POST | `/groups/{groupId}/saved` | Добавить фильм на доску | член группы | 201, `SavedMovieResponseDto` | 300 мс (с обращением к коннектору до 800 мс) |
-| DELETE | `/groups/{groupId}/saved/{savedId}` | Убрать фильм с доски | член группы | 204 | 150 мс |
-| GET | `/groups/{id}/recommendations` | Расчёт подборки. Параметры: `genreIds` (жанры «на сегодня»), `profileIds` (кто смотрит; по умолчанию вся группа), `limit` (по умолчанию 10) | член группы | 200, список `ScoredMovie` (`movieId`, `finalScore`, `genreIds`, `qualityScore`) | 800 мс |
-| GET | `/groups/{id}/recommendations/stats` | Статистика группы: число участников, топ жанров (средний и минимальный вес), запрещённые жанры | член группы | 200, `GroupStatsResponse` | 300 мс |
-| GET | `/groups/{id}/recommendations/last` | Последний сохранённый снимок рекомендаций с постерами, рейтингами и жанрами | член группы | 200, список `SnapshotMovieResponse` | 200 мс |
+| Метод | Путь | Описание | Права | Ответ |
+|-------|------|----------|-------|-------|
+| POST | `/auth/register` | Регистрация (`nickname`, `password`) | все | 201, `{token, profile}` |
+| POST | `/auth/login` | Вход | все | 200, `{token, profile}` |
+| PATCH | `/auth/me` | Смена никнейма и/или пароля (`nickname`, `oldPassword`, `newPassword`) | владелец профиля | 200, `ProfileDto` |
+| GET | `/genres` | Справочник жанров | авторизованный | 200, список |
+| GET | `/profiles/me/preferences` | Мои оценки жанров | авторизованный | 200, список |
+| PUT | `/profiles/me/preferences` | Задать оценки жанров списком (вес от -1.0 до 1.0) | авторизованный | 200, список |
+| DELETE | `/profiles/me/preferences/{genreId}` | Удалить одну оценку | авторизованный | 204 |
+| DELETE | `/profiles/me/preferences` | Удалить все оценки | авторизованный | 204 |
+| GET | `/groups` | Мои группы (роль, число участников) | авторизованный | 200, список |
+| POST | `/groups` | Создать группу (`name`, `ageRestriction`) | авторизованный | 200, `GroupDetailsDto` |
+| POST | `/groups/join` | Вступить по коду (`inviteCode`) | авторизованный | 200, `GroupDetailsDto` |
+| GET | `/groups/{id}` | Детали группы и участники | член группы | 200, `GroupDetailsDto` |
+| DELETE | `/groups/{id}` | Удалить группу | owner | 204 |
+| DELETE | `/groups/{id}/members/{memberProfileId}` | Исключить участника | owner | 204 |
+| POST | `/groups/{id}/regenerate-invite` | Новый код приглашения | owner | 200, `{inviteCode}` |
+| POST | `/groups/{id}/leave` | Покинуть группу | член группы | 204 |
+| GET | `/groups/{groupId}/saved` | Доска группы | член группы | 200, список |
+| POST | `/groups/{groupId}/saved` | Добавить фильм на доску | член группы | 201, `SavedMovieResponseDto` |
+| DELETE | `/groups/{groupId}/saved/{savedId}` | Убрать фильм с доски | член группы | 204 |
+| GET | `/groups/{id}/recommendations` | Расчёт подборки. Параметры: `genreIds` (жанры «на сегодня»), `profileIds` (кто смотрит; по умолчанию вся группа), `limit` (по умолчанию 10) | член группы | 200, список `ScoredMovie` (`movieId`, `finalScore`, `genreIds`, `qualityScore`) |
+| GET | `/groups/{id}/recommendations/stats` | Статистика группы: число участников, топ жанров (средний и минимальный вес), запрещённые жанры | член группы | 200, `GroupStatsResponse` |
+| GET | `/groups/{id}/recommendations/last` | Последний сохранённый снимок рекомендаций с постерами, рейтингами и жанрами | член группы | 200, список `SnapshotMovieResponse` |
 
 **Пример: добавление фильма на доску**
 
